@@ -1,12 +1,21 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { db } = require('../config/firebase');
 const { requireAuth } = require('../middleware/auth');
 const { validateLead, STATUSES } = require('../utils/validate');
 
 const router = express.Router();
 
+const createLeadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many submissions. Please try again later.' },
+});
+
 // PUBLIC — create a lead
-router.post('/', async (req, res) => {
+router.post('/', createLeadLimiter, async (req, res) => {
   const { valid, errors, data } = validateLead(req.body);
   if (!valid) {
     return res.status(400).json({ message: 'Validation failed', errors });

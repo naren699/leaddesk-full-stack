@@ -8,6 +8,7 @@ export default function Home() {
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const validate = () => {
     const e = {}
@@ -25,13 +26,14 @@ export default function Home() {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setErrors({})
+    setSubmitError('')
     setLoading(true)
     try {
       await axios.post(`${API}/api/leads`, form)
       setSuccess(true)
       setForm({ name: '', email: '', budget: '', message: '' })
     } catch (err) {
-      alert(err.response?.data?.message || 'Something went wrong')
+      setSubmitError(err.response?.data?.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -58,6 +60,11 @@ export default function Home() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-5">
+              {submitError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+                  {submitError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input

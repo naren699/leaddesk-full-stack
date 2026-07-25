@@ -14,6 +14,7 @@ export default function Admin() {
   const [leads, setLeads] = useState([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => { fetchLeads() }, [])
@@ -30,11 +31,13 @@ export default function Admin() {
   }
 
   const updateStatus = async (id, status) => {
+    setError('')
     try {
       await axios.patch(`${API}/api/leads/${id}`, { status }, { withCredentials: true })
       setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l))
     } catch (err) {
       if (err.response?.status === 401) navigate('/login')
+      else setError('Could not update status. Please try again.')
     }
   }
 
@@ -67,6 +70,11 @@ export default function Admin() {
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+            {error}
+          </div>
+        )}
         <div className="mb-6">
           <input
             type="text"
@@ -77,7 +85,20 @@ export default function Admin() {
           />
         </div>
 
-        {loading && <p className="text-gray-400 text-sm">Loading leads...</p>}
+        {loading && (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
+            <div className="h-10 bg-gray-50 border-b border-gray-200" />
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center gap-6 px-6 py-4 border-b border-gray-100 last:border-0">
+                <div className="h-3 bg-gray-200 rounded w-24" />
+                <div className="h-3 bg-gray-200 rounded w-32" />
+                <div className="h-3 bg-gray-200 rounded w-16" />
+                <div className="h-3 bg-gray-200 rounded flex-1" />
+                <div className="h-6 bg-gray-200 rounded-full w-20" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {!loading && filtered.length === 0 && (
           <p className="text-gray-400 text-sm text-center py-16">
